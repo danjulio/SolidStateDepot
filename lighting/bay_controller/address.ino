@@ -77,16 +77,18 @@ const char* const bayAddrsC_S[NUM_BAY_ADDRESSES] PROGMEM = {BAY_S1, BAY_S2, BAY_
 
 
 
-#define NUM_BAY_DMX 5
-const char BAY_ALL[] PROGMEM = "    All Units   ";
-const char BAY_DMX1[] PROGMEM = "      Cave      ";
-const char BAY_DMX2[] PROGMEM = "      Spot      ";
+#define NUM_BAY_DMX 7
+const char BAY_ALL[]  PROGMEM = "    All Units   ";
+const char BAY_DMX1[] PROGMEM = "    West Wall   ";
+const char BAY_DMX2[] PROGMEM = "   Screen Spot  ";
 const char BAY_DMX3[] PROGMEM = "    Geometry    ";
 const char BAY_DMX4[] PROGMEM = "    Cylinder    ";
-const uint16_t bayAddrsDmx_Z[NUM_BAY_DMX] PROGMEM  = {202, 202, 202, 202, 202};
-const uint16_t bayAddrsDmx_A2[NUM_BAY_DMX] PROGMEM = {0, 213, 214, 215, 216};
-const boolean bayAddrsDmx_isU[NUM_BAY_DMX] PROGMEM = {true, true, true, true, true};
-const char* const bayAddrsDmx_S[NUM_BAY_DMX] PROGMEM = {BAY_ALL, BAY_DMX1, BAY_DMX2, BAY_DMX3, BAY_DMX4};
+const char BAY_DMX5[] PROGMEM = "    East Wall   ";
+const char BAY_DMX6[] PROGMEM = "   Small Spot   ";
+const uint16_t bayAddrsDmx_Z[NUM_BAY_DMX] PROGMEM  = {202, 202, 202, 202, 202, 202, 202};
+const uint16_t bayAddrsDmx_A2[NUM_BAY_DMX] PROGMEM = {0, 213, 214, 215, 216, 217, 218};
+const boolean bayAddrsDmx_isU[NUM_BAY_DMX] PROGMEM = {true, true, true, true, true, true, true};
+const char* const bayAddrsDmx_S[NUM_BAY_DMX] PROGMEM = {BAY_ALL, BAY_DMX1, BAY_DMX2, BAY_DMX3, BAY_DMX4, BAY_DMX5, BAY_DMX6};
 
 
 #define NUM_LOBBY 17

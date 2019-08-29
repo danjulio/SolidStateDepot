@@ -46,9 +46,15 @@
 
 //
 // Percentages for sound effects
+//
 #define PERCENT_RND_ON       5
 #define PERCENT_RND_OFF      5
 
+
+//
+// Main Bay White light default ON intensity
+//
+#define DEFAULT_WHITE_ON     0x00D0
 
 //
 // Module Variables
@@ -212,7 +218,7 @@ void _EffectSoundOff() {
 
 void _EvalEffectAllOn() {
   // Simple effect that fades all white lights in Group 2 (Bay Area) on in one step
-  Dj2LoadFadeHsv(200, 0, true, 0, 0, 0x0100, 10);
+  Dj2LoadFadeHsv(200, 0, true, 0, 0, DEFAULT_WHITE_ON, 10);
   if (doSound) {
     SoundEnable(1);
   }
@@ -225,7 +231,7 @@ void _EvalEffectSmooth() {
   
   switch (effectStep) {
     case 1: // Row 10
-      Dj2LoadFadeHsv(200, 10, false, 0x0000, 0x0000, 0x0100, 20);
+      Dj2LoadFadeHsv(200, 10, false, 0x0000, 0x0000, DEFAULT_WHITE_ON, 20);
       if (doSound) {
         SoundEnable(2);
       }
@@ -235,7 +241,7 @@ void _EvalEffectSmooth() {
 
     case 2: // Row 11
       if (_EffectTimerExpired()) {
-        Dj2LoadFadeHsv(200, 11, false, 0x0000, 0x0000, 0x0100, 20);
+        Dj2LoadFadeHsv(200, 11, false, 0x0000, 0x0000, DEFAULT_WHITE_ON, 20);
         effectTimer = 20;
         effectStep = 3;
       }
@@ -243,7 +249,7 @@ void _EvalEffectSmooth() {
       
     case 3: // Row 12
       if (_EffectTimerExpired()) {
-        Dj2LoadFadeHsv(200, 12, false, 0x0000, 0x0000, 0x0100, 20);
+        Dj2LoadFadeHsv(200, 12, false, 0x0000, 0x0000, DEFAULT_WHITE_ON, 20);
         effectTimer = 20;
         effectStep = 4;
       }
@@ -251,7 +257,7 @@ void _EvalEffectSmooth() {
     
     case 4: // Row 13
       if (_EffectTimerExpired()) {
-        Dj2LoadFadeHsv(200, 13, false, 0x0000, 0x0000, 0x0100, 20);
+        Dj2LoadFadeHsv(200, 13, false, 0x0000, 0x0000, DEFAULT_WHITE_ON, 20);
         effectStep = 0;
       }
       break;
@@ -266,7 +272,7 @@ void _EvalEffectRelay1() {
   // Sequence through units
   if (effectStep == 1) {
     // First fixture turned on immediately
-    Dj2LoadSetHsv(200, 200+effectStep, true, 0x0000, 0x0000, 0x0100);
+    Dj2LoadSetHsv(200, 200+effectStep, true, 0x0000, 0x0000, DEFAULT_WHITE_ON);
     if (doSound) {
       SoundEnable(3);
     }
@@ -275,7 +281,7 @@ void _EvalEffectRelay1() {
   } else {
     // Subsequent fixtures at 200 mSec intervals
     if (_EffectTimerExpired()) {
-      Dj2LoadSetHsv(200, 200+effectStep, true, 0x0000, 0x0000, 0x0100);
+      Dj2LoadSetHsv(200, 200+effectStep, true, 0x0000, 0x0000, DEFAULT_WHITE_ON);
       if (doSound) {
         SoundEnable(3);
       }
@@ -296,7 +302,7 @@ void _EvalEffectRelay2 () {
     if (doSound) {
       SoundEnable(4);
     }
-    Dj2LoadSetHsv(200, 9+effectStep, false, 0x0000, 0x0000, 0x0100);
+    Dj2LoadSetHsv(200, 9+effectStep, false, 0x0000, 0x0000, DEFAULT_WHITE_ON);
     effectTimer = 25;
     effectStep = 2;
   } else {
@@ -305,7 +311,7 @@ void _EvalEffectRelay2 () {
       if (doSound) {
         SoundEnable(4);
       }
-      Dj2LoadSetHsv(200, 9+effectStep, false, 0x0000, 0x0000, 0x0100);
+      Dj2LoadSetHsv(200, 9+effectStep, false, 0x0000, 0x0000, DEFAULT_WHITE_ON);
       effectTimer = 25;
       if (++effectStep == 5) {
         // Done
@@ -313,6 +319,22 @@ void _EvalEffectRelay2 () {
       }
     }
   }
+}
+
+
+uint16_t _GetOnOffBitmap() {
+  uint8_t mask = random(0, 0x100);
+  uint16_t retval = 0;
+  int i;
+
+  for (i=0; i<8; i++) {
+    if ((mask & 0x01) == 0x01) {
+      retval |= (0x0003 << (i*2));
+    }
+    mask = mask >> 1;
+  }
+
+  return retval;
 }
 
 
@@ -336,7 +358,8 @@ void _EvalEffectFluorescent() {
       //Serial.print("rndUnit = "); Serial.println(rndUnit);
       if ((flickerUnit[0] != rndUnit) && (flickerUnit[1] != rndUnit) && (flickerUnit[2] != rndUnit) && (flickerUnit[3] != rndUnit)) {
         flickerUnit[i] = rndUnit;
-        flickerPattern[i] = random(0, 0x10000) | (random(0, 0x10000) << 16) | 0x80000001;   // Make sure flicker units start and end on
+        //flickerPattern[i] = random(0, 0x10000) | (random(0, 0x10000) << 16) | 0x80000001;   // Make sure flicker units start and end on
+        flickerPattern[i] = _GetOnOffBitmap() | (_GetOnOffBitmap() << 16) | 0x80000001;   // Make sure flicker units start and end ON
         //Serial.print("  flickerUnit = "); Serial.println(flickerUnit[i], HEX);
         //Serial.print("  flickerPattern = "); Serial.println(flickerPattern[i], HEX);
         i++;
@@ -344,12 +367,12 @@ void _EvalEffectFluorescent() {
     }
     
     // Fade on all lights initially
-    Dj2LoadFadeHsv(200, 0, true, 0, 0, 0x0100, 3);
+    Dj2LoadFadeHsv(200, 0, true, 0, 0, DEFAULT_WHITE_ON, 3);
     if (doSound) {
       SoundEnable(5);
     }
     
-    effectTimer = 3;  // Evaluate every 30 mSec
+    effectTimer = 5;  // Evaluate every 50 mSec
     effectStep = 2;
   } else {
     if (_EffectTimerExpired()) {
@@ -362,7 +385,7 @@ void _EvalEffectFluorescent() {
             break;
             
           case 2: // '10' ---> ON
-            Dj2LoadSetHsv(200, flickerUnit[i], true, 0x0000, 0x0000, 0x0100);
+            Dj2LoadSetHsv(200, flickerUnit[i], true, 0x0000, 0x0000, DEFAULT_WHITE_ON);
             //Serial.print(flickerUnit[i], HEX); Serial.println(" on");
             break;
         }
@@ -370,7 +393,7 @@ void _EvalEffectFluorescent() {
       }
       
       // Setup next step
-      effectTimer = 3;
+      effectTimer = 5;
       if (++effectStep == 33) {
         // Done after all 15 transitions of the flickerPatterns have been processed
         effectStep = 0;
@@ -382,18 +405,18 @@ void _EvalEffectFluorescent() {
 
 void _EvalEffectClassroom() {
   // Load multiple packets at 50-200 mSec intervals to implement the following "scene"
-  //   1. Column 1 (White: 50%, Color: Blue @ 100%)
-  //   2. Column 2 (White: 25%, Color: Blue @100%)
+  //   1. Column 1 (White: 33%, Color: Blue @ 100%)
+  //   2. Column 2 (White: 15%, Color: Blue @100%)
   //   3. Unit 203 (Color: Blue @100%)
   //   4. Unit 204 (Color: Blue @100%)
-  //   5. Unit 209 (White: 25%, Color: Blue @ 100%)
-  //   6. Unit 210 (White: 50%, Color: Blue @ 100%)
+  //   5. Unit 209 (White: 15%, Color: Blue @ 100%)
+  //   6. Unit 210 (White: 33%, Color: Blue @ 100%)
   //
   // Take advantage of the fact that we can stuff 2 packets into the Arduino's Serial TX FIFO
 
   switch (effectStep) {
     case 1: // Column 1
-      Dj2LoadFadeHsv(200, 20, false, 0x0400, 0x00C0, 0x0080, 20);
+      Dj2LoadFadeHsv(200, 20, false, 0x0400, 0x00C0, 0x0055, 20);
       Dj2LoadFadeHsv(201, 20, false, 0x0400, 0x00C0, 0x0100, 20);
       effectTimer = 20;
       effectStep = 2;
@@ -401,7 +424,7 @@ void _EvalEffectClassroom() {
 
     case 2: // Column 2
       if (_EffectTimerExpired()) {
-        Dj2LoadFadeHsv(200, 21, false, 0x0400, 0x00E0, 0x0040, 20);
+        Dj2LoadFadeHsv(200, 21, false, 0x0400, 0x00E0, 0x0017, 20);
         Dj2LoadFadeHsv(201, 21, false, 0x0400, 0x00E0, 0x0100, 20);
         effectTimer = 20;
         effectStep = 3;
@@ -428,8 +451,8 @@ void _EvalEffectClassroom() {
       
       case 5: // White Units 209 & 210
       if (_EffectTimerExpired()) {
-        Dj2LoadFadeHsv(200, 209, true, 0x0400, 0x0100, 0x0040, 20);
-        Dj2LoadFadeHsv(200, 210, true, 0x0400, 0x0100, 0x0080, 20);
+        Dj2LoadFadeHsv(200, 209, true, 0x0400, 0x0100, 0x0017, 20);
+        Dj2LoadFadeHsv(200, 210, true, 0x0400, 0x0100, 0x0055, 20);
         effectTimer = 2;
         effectStep = 6;
       }
@@ -446,7 +469,7 @@ void _EvalEffectClassroom() {
       
     case 7: // Bay DMX controllers
       if (_EffectTimerExpired()) {
-        Dj2LoadFadeHsv(202, 213, true, 0x0400, 0x0100, 0x0100, 20);  // Lobby Cave
+        Dj2LoadFadeHsv(202, 213, true, 0x0400, 0x0100, 0x0100, 20);  // West Wall
         Dj2LoadFadeHsv(202, 214, true, 0x0400, 0x0100, 0x0000, 20);  // Spot
         effectStep = 0;
       }
